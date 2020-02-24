@@ -40,7 +40,7 @@ services:
   telegraf:
     image: telegraf
     volumes:
-      - $PWD/config/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - $PWD/config/telegraf.toml:/etc/telegraf/telegraf.toml:ro
     links:
       - influxdb
     networks:
