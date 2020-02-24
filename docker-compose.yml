@@ -67,7 +67,7 @@ services:
       - 3000:3000
     labels:
       - "traefik.backend=tick"
-      - "traefik.http.routers.grafana.rule=Host:grafana.localhost"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"
       - "traefik.docker.network=traefik"
       - "traefik.port=3000"
       - "container_group=monitoring"
