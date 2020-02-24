@@ -1,0 +1,80 @@
+version: '3.5'
+services:
+  traefik:
+    image: traefik
+    networks:
+      - traefik
+    ports:
+      - "80:80"
+      - "8080:8080"
+    command:
+      #- "--log.level=DEBUG"
+      - "--entrypoints.web.address=:80"
+      - "--api.insecure"
+      - "--providers.docker"
+      #- "--providers.docker.exposedbydefault=false"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      #- $PWD/config/traefik.toml:/etc/traefik/traefik.toml
+  whoami:
+    image: "containous/whoami:v1.3.0"
+    networks:
+      - traefik
+    labels:
+      - "traefik.http.routers.whoami.rule=Host(`whoami.docker.localhost`)"
+  influxdb:
+    image: influxdb
+    environment:
+      - INFLUXDB_DB=telegraf
+      - INFLUXDB_USER=telegraf
+      - INFLUXDB_USER_PASSWORD=TelegrafPassword
+    volumes:
+      - influxdb:/var/lib/influxdb
+    ports:
+      - "8086:8086"
+    networks:
+      - backend
+    labels:
+      - "traefik.enable=false"
+      - "container_group=monitoring"
+  telegraf:
+    image: telegraf
+    volumes:
+      - $PWD/config/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    links:
+      - influxdb
+    networks:
+      - backend
+    labels:
+      - "traefik.enable=false"
+      - "container_group=monitoring"
+  grafana:
+    image: grafana/grafana
+    restart: always
+    environment:
+      - GF_SERVER_ROOT_URL=https://grafana.localhost
+      - GF_SECURITY_ADMIN_PASSWORD=GrafanaPassword
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource,grafana-worldmap-panel,raintank-worldping-app,jdbranham-diagram-panel
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SECURITY_DISABLE_GRAVATAR=true
+      - GF_SERVER_DOMAIN=localhost
+    volumes:
+      - grafana:/var/lib/grafana
+    networks:
+      - traefik
+      - backend
+    ports:
+      - 3000:3000
+    labels:
+      - "traefik.backend=tick"
+      - "traefik.http.routers.grafana.rule=Host:grafana.localhost"
+      - "traefik.docker.network=traefik"
+      - "traefik.port=3000"
+      - "container_group=monitoring"
+networks:
+  backend:
+  traefik:
+
+volumes:
+  grafana:
+  influxdb:
