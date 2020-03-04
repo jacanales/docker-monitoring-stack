@@ -15,7 +15,7 @@ services:
       #- "--providers.docker.exposedbydefault=false"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      #- $PWD/config/traefik.toml:/etc/traefik/traefik.toml
+      #- $PWD/traefik/traefik.toml:/etc/traefik/traefik.toml
   whoami:
     image: "containous/whoami:v1.3.0"
     networks:
@@ -40,7 +40,8 @@ services:
   telegraf:
     image: telegraf
     volumes:
-      - $PWD/config/telegraf.toml:/etc/telegraf/telegraf.toml:ro
+      - $PWD/config/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - $PWD/config/telegraf/bin:/code/bin
     links:
       - influxdb
     networks:
