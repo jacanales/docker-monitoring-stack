@@ -1,0 +1,35 @@
+{
+  "name": "jacanales/statsd",
+  "type": "library",
+  "description": "PHP client for StatsD",
+  "keywords": [
+    "monitoring",
+    "statsd",
+    "metrics"
+  ],
+  "homepage": "http://www.jacd.es/",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Jesús Antonio Canales Diez",
+      "email": "contact@jacd.es"
+    }
+  ],
+  "require": {
+    "php": ">= 7.3"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "~9.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Jacanales\\StatsD\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "tests\\unit\\Jacanales\\StatsD\\": "tests/unit",
+      "tests\\integration\\Jacanales\\StatsD\\": "tests/integration"
+    }
+  }
+}
