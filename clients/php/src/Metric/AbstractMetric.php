@@ -44,11 +44,6 @@ abstract class AbstractMetric implements Metric
         return $message;
     }
 
-    /**
-     * @param string $message
-     * @param float $sampleRate
-     * @return string
-     */
     private function addSampleRatio(string $message, float $sampleRate): string
     {
         if ($sampleRate < 1.0) {

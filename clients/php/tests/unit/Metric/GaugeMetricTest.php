@@ -2,12 +2,12 @@
 
 namespace tests\unit\Jacanales\StatsD\Metric;
 
-use Jacanales\StatsD\Metric\CounterMetric;
+use Jacanales\StatsD\Metric\GaugeMetric;
 use PHPUnit\Framework\TestCase;
 
-class CounterMetricTest extends TestCase
+class GaugeMetricTest extends TestCase
 {
-    private const KEY = 'counter_metric_test';
+    private const KEY = 'distribution_metric_test';
     private const DEFAULT_VALUE = 1;
 
     private $metric;
@@ -16,7 +16,7 @@ class CounterMetricTest extends TestCase
     {
         parent::setUp();
 
-        $this->metric = new CounterMetric(self::KEY, self::DEFAULT_VALUE);
+        $this->metric = new GaugeMetric(self::KEY, self::DEFAULT_VALUE);
     }
 
     protected function tearDown(): void
@@ -28,12 +28,12 @@ class CounterMetricTest extends TestCase
 
     public function testGetType(): void
     {
-        $this->assertEquals(CounterMetric::TYPE, $this->metric->getType());
+        $this->assertEquals(GaugeMetric::TYPE, $this->metric->getType());
     }
 
     public function testGetMessage(): void
     {
-        $expectedMessage = sprintf('%s:%d|%s', self::KEY, self::DEFAULT_VALUE, CounterMetric::TYPE);
+        $expectedMessage = sprintf('%s:%d|%s', self::KEY, self::DEFAULT_VALUE, GaugeMetric::TYPE);
 
         $this->assertEquals($expectedMessage, $this->metric->getMessage());
     }
@@ -41,9 +41,9 @@ class CounterMetricTest extends TestCase
     public function testGetMessageWithTags(): void
     {
         $value = 5;
-        $this->metric = new CounterMetric(self::KEY, $value, ['tag1' => 'value1', 'tag2' => 'value2']);
+        $this->metric = new GaugeMetric(self::KEY, $value, ['tag1' => 'value1', 'tag2' => 'value2']);
 
-        $expectedMessage = sprintf('%s:%d|%s|#tag1:value1,tag2:value2', self::KEY, $value, CounterMetric::TYPE);
+        $expectedMessage = sprintf('%s:%d|%s|#tag1:value1,tag2:value2', self::KEY, $value, GaugeMetric::TYPE);
 
         $this->assertEquals($expectedMessage, $this->metric->getMessage());
     }
@@ -52,7 +52,7 @@ class CounterMetricTest extends TestCase
     {
         $rate = 0.8;
 
-        $expectedMessage = sprintf('%s:%d|%s|@%s', self::KEY, self::DEFAULT_VALUE, CounterMetric::TYPE, $rate);
+        $expectedMessage = sprintf('%s:%d|%s|@%s', self::KEY, self::DEFAULT_VALUE, GaugeMetric::TYPE, $rate);
 
         $this->assertEquals($expectedMessage, $this->metric->getMessage($rate));
     }
@@ -60,9 +60,9 @@ class CounterMetricTest extends TestCase
     public function testGetMessageWithTagsAndSampleRate(): void
     {
         $rate = 0.8;
-        $this->metric = new CounterMetric(self::KEY, self::DEFAULT_VALUE, ['tag1' => 'value1', 'tag2' => 'value2']);
+        $this->metric = new GaugeMetric(self::KEY, self::DEFAULT_VALUE, ['tag1' => 'value1', 'tag2' => 'value2']);
 
-        $expectedMessage = sprintf('%s:%d|%s|@%s|#tag1:value1,tag2:value2', self::KEY, self::DEFAULT_VALUE, CounterMetric::TYPE, $rate);
+        $expectedMessage = sprintf('%s:%d|%s|@%s|#tag1:value1,tag2:value2', self::KEY, self::DEFAULT_VALUE, GaugeMetric::TYPE, $rate);
         $this->assertEquals($expectedMessage, $this->metric->getMessage($rate));
     }
 }

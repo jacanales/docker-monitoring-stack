@@ -28,7 +28,8 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "tests\\Jacanales\\StatsD\\": "tests/"
+      "tests\\unit\\Jacanales\\StatsD\\": "tests/unit",
+      "tests\\integration\\Jacanales\\StatsD\\": "tests/integration"
     }
   }
 }

@@ -3,6 +3,11 @@
 namespace Jacanales\StatsD;
 
 use Jacanales\StatsD\Metric\CounterMetric;
+use Jacanales\StatsD\Metric\DistributionMetric;
+use Jacanales\StatsD\Metric\GaugeMetric;
+use Jacanales\StatsD\Metric\HistogramMetric;
+use Jacanales\StatsD\Metric\SetMetric;
+use Jacanales\StatsD\Metric\TimingMetric;
 
 class Client
 {
@@ -16,41 +21,71 @@ class Client
         $this->namespace = $namespace;
     }
 
-    public function increment(string $key, float $sampleRate = 1.0, array $tags = []): void
+    public function increment(string $key, array $tags = [], float $sampleRate = 1.0): void
     {
-        $this->count($key, 1, $sampleRate, $tags);
+        $this->count($key, 1, $tags, $sampleRate);
     }
 
-    public function decrement(string $key, float $sampleRate = 1.0, array $tags = []): void
+    public function decrement(string $key, array $tags = [], float $sampleRate = 1.0): void
     {
-        $this->count($key, -1, $sampleRate, $tags);
+        $this->count($key, -1, $tags, $sampleRate);
     }
 
-    public function count(string $key, int $value, float $sampleRate = 1.0, array $tags = []): void
+    public function count(string $key, int $value, array $tags = [], float $sampleRate = 1.0): void
     {
         $metric = new CounterMetric($key, $value, $tags);
 
         $this->send($metric, $sampleRate);
     }
 
-    public function startTiming(string $key): void
+    public function distribution(string $key, float $value, array $tags = [], float $sampleRate = 1.0): void
+    {
+        $metric = new DistributionMetric($key, $value, $tags);
+
+        $this->send($metric, $sampleRate);
+    }
+
+    public function gauge(string $key, float $value, array $tags = [], float $sampleRate = 1.0): void
+    {
+        $metric = new GaugeMetric($key, $value, $tags);
+
+        $this->send($metric, $sampleRate);
+    }
+
+    public function set(string $key, string $value, array $tags = [], float $sampleRate = 1.0): void
+    {
+        $metric = new SetMetric($key, $value, $tags);
+
+        $this->send($metric, $sampleRate);
+    }
+
+    public function histogram(string $key, float $value, array $tags = [], float $sampleRate = 1.0): void
+    {
+        $metric = new HistogramMetric($key, $value, $tags);
+
+        $this->send($metric, $sampleRate);
+    }
+
+    public function startTimer(string $key): void
     {
         $this->timers[$key] = \hrtime(true);
     }
 
-    public function stopTiming(string $key, float $sampleRate = 1.0, array $tags = []): void
+    public function stopTimer(string $key, array $tags = [], float $sampleRate = 1.0): void
     {
-        if (!isset($key, $this->timers)) {
+        if (!isset($this->timers[$key])) {
             return;
         }
 
         $time = (\hrtime(true) - $this->timers[$key]);
         unset($this->timers[$key]);
+
+        $this->timing($key, $time, $tags, $sampleRate);
     }
 
-    public function timing(string $key, int $value, float $sampleRate = 1.0, array $tags = []): void
+    private function timing(string $key, int $value, array $tags = [], float $sampleRate = 1.0): void
     {
-        $metric = new CounterMetric($key, $value, $tags);
+        $metric = new TimingMetric($key, $value, $tags);
 
         $this->send($metric, $sampleRate);
     }

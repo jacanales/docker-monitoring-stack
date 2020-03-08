@@ -10,12 +10,16 @@
          stopOnFailure="false">
     <testsuites>
         <testsuite name="Unit Test suite for PHP StatsD client">
-            <directory>tests/unit</directory>
+            <directory>./tests/unit</directory>
         </testsuite>
     </testsuites>
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">
             <directory suffix=".php">./src</directory>
+            <directory>vendor</directory>
+            <exclude>
+                <directory>vendor/*</directory>
+            </exclude>
         </whitelist>
     </filter>
 </phpunit>
