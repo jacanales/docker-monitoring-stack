@@ -2,8 +2,8 @@
 
 namespace tests\unit\Jacanales\StatsD;
 
+use Domnikl\Statsd\Connection;
 use Jacanales\StatsD\Client;
-use Jacanales\StatsD\Connection;
 use Jacanales\StatsD\Metric\CounterMetric;
 use Jacanales\StatsD\Metric\DistributionMetric;
 use Jacanales\StatsD\Metric\GaugeMetric;
@@ -12,8 +12,9 @@ use Jacanales\StatsD\Metric\SetMetric;
 use Jacanales\StatsD\Metric\TimingMetric;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use Prophecy\Prophecy\ObjectProphecy;
 
-class ClientTest extends TestCase
+final class ClientTest extends TestCase
 {
     private const METRIC_NAME = 'test_metric';
     private const SAMPLE_RATE = 0.8;
@@ -21,7 +22,7 @@ class ClientTest extends TestCase
 
     private $client;
 
-    /** @var \Prophecy\Prophecy\ObjectProphecy|Connection  */
+    /** @var ObjectProphecy|Connection  */
     private $connection;
 
     protected function setUp(): void
