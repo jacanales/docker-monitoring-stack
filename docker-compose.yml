@@ -46,6 +46,8 @@ services:
       - influxdb
     networks:
       - backend
+    ports:
+      - 8125:8125/udp
     labels:
       - "traefik.enable=false"
       - "container_group=monitoring"
