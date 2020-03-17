@@ -2,6 +2,7 @@
 
 namespace Jacanales\StatsD;
 
+use Domnikl\Statsd\Connection;
 use Jacanales\StatsD\Metric\CounterMetric;
 use Jacanales\StatsD\Metric\DistributionMetric;
 use Jacanales\StatsD\Metric\GaugeMetric;
@@ -9,7 +10,7 @@ use Jacanales\StatsD\Metric\HistogramMetric;
 use Jacanales\StatsD\Metric\SetMetric;
 use Jacanales\StatsD\Metric\TimingMetric;
 
-class Client
+final class Client
 {
     private $connection;
     private $namespace;
