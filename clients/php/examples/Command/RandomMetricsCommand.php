@@ -11,6 +11,9 @@ use Symfony\Component\Dotenv\Dotenv;
 
 class RandomMetricsCommand extends Command
 {
+    private const DEFAULT_MIN = 1;
+    private const DEFAULT_MAX = 100;
+
     private const COMMAND_NAME = 'run:metrics';
     private Client $client;
 
@@ -46,10 +49,21 @@ class RandomMetricsCommand extends Command
         $output->writeln('Sending metrics to Telegraf');
         $output->writeln('Press CMD+C to stop');
         while (true) {
-            $count = random_int(1000, 10000);
+            $this->client->startTimer('timing');
+            $this->client->count('random_increment', $this->getRandom(), ['app' => 'demo']);
+            $this->client->gauge('random_gauge', (float) $this->getRandom(), ['app' => 'demo']);
+            $this->client->gauge('random_gauge', -(float) $this->getRandom(), ['app' => 'demo']);
+            $this->client->histogram('random_histogram', (float) $this->getRandom(), ['app' => 'demo']);
+            $this->client->distribution('random_distribution', (float) $this->getRandom(), ['app' => 'demo']);
+            $this->client->set('random_set', 'jacdset', ['app' => 'demo']);
+            sleep($this->getRandom(100, 1000) / 1000);
 
-            $this->client->count('random_increment', $count, ['app' => 'demo']);
-            sleep(1/100);
+            $this->client->stopTimer('timing', ['app' => 'demo']);
         }
+    }
+
+    private function getRandom(int $min = self::DEFAULT_MIN, int $max = self::DEFAULT_MAX): int
+    {
+        return random_int($min, $max);
     }
 }
