@@ -1,6 +1,6 @@
 module github.com/jacanales/docker-monitoring-stack
 
-go 1.13
+go 1.15
 
 require (
 	github.com/DataDog/datadog-go v3.5.0+incompatible // indirect
