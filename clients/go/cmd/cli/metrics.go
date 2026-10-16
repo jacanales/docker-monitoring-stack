@@ -1,8 +1,8 @@
 package main
 
 import (
-"math/rand"
-"time"
+	"math/rand"
+	"time"
 
 	"github.com/jacanales/docker-monitoring-stack/internal/app/metrics"
 )

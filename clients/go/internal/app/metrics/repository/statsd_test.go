@@ -9,8 +9,8 @@ import (
 	"github.com/jacanales/docker-monitoring-stack/internal/app/metrics"
 	"github.com/jacanales/docker-monitoring-stack/internal/app/metrics/repository"
 
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
 const (
