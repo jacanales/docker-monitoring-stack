@@ -1,4 +1,4 @@
-//go:generate go run -mod=mod github.com/golang/mock/mockgen -source=$GOFILE -destination=./mock_$GOFILE -package=$GOPACKAGE -self_package=$GOPACKAGE
+//go:generate go run -mod=mod go.uber.org/mock/mockgen -source=$GOFILE -destination=./mock_$GOFILE -package=$GOPACKAGE
 
 package metrics
 

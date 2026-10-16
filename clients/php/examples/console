@@ -8,6 +8,6 @@ use Symfony\Component\Console\Application;
 
 $application = new Application();
 
-$application->add(new RandomMetricsCommand());
+$application->addCommand(new RandomMetricsCommand());
 
 $application->run();

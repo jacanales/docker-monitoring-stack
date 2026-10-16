@@ -17,7 +17,7 @@ class RandomMetricsCommand extends Command
     private const COMMAND_NAME = 'run:metrics';
     private Client $client;
 
-    public function __construct(string $name = null)
+    public function __construct(?string $name = null)
     {
         (new Dotenv())->load(__DIR__ . '/../.env');
 
@@ -25,7 +25,7 @@ class RandomMetricsCommand extends Command
             $_ENV['TELEGRAF_HOST'],
             $_ENV['TELEGRAF_PORT'],
             $_ENV['TELEGRAF_TIMEOUT'],
-            $_ENV['TELEGRAF_PERSISTENT'],
+            filter_var($_ENV['TELEGRAF_PERSISTENT'], FILTER_VALIDATE_BOOL),
         );
 
         $this->client = new Client($connection, $_ENV['DEFAULT_NAMESPACE']);
@@ -44,7 +44,7 @@ class RandomMetricsCommand extends Command
     /**
      * @throws \Exception
      */
-    protected function execute(InputInterface $input, OutputInterface $output): void
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $output->writeln('Sending metrics to Telegraf');
         $output->writeln('Press CMD+C to stop');
@@ -56,10 +56,12 @@ class RandomMetricsCommand extends Command
             $this->client->histogram('random_histogram', (float) $this->getRandom(), ['app' => 'demo']);
             $this->client->distribution('random_distribution', (float) $this->getRandom(), ['app' => 'demo']);
             $this->client->set('random_set', 'jacdset', ['app' => 'demo']);
-            sleep($this->getRandom(100, 1000) / 1000);
+            usleep($this->getRandom(100, 1000) * 1000);
 
             $this->client->stopTimer('timing', ['app' => 'demo']);
         }
+
+        return Command::SUCCESS;
     }
 
     private function getRandom(int $min = self::DEFAULT_MIN, int $max = self::DEFAULT_MAX): int

@@ -1,4 +1,4 @@
-//go:generate mockgen -source=$GOFILE -destination=mock_$GOFILE -package=$GOPACKAGE -self_package=$GOPACKAGE
+//go:generate go run go.uber.org/mock/mockgen -source=$GOFILE -destination=mock_$GOFILE -package=$GOPACKAGE
 
 package repository
 
@@ -8,7 +8,7 @@ import (
 
 	"github.com/jacanales/docker-monitoring-stack/internal/app/metrics"
 
-	"github.com/datadog/datadog-go/statsd"
+	"github.com/DataDog/datadog-go/v5/statsd"
 )
 
 var (
