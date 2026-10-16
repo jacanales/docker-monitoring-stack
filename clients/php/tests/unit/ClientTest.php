@@ -12,17 +12,21 @@ use Jacanales\StatsD\Metric\SetMetric;
 use Jacanales\StatsD\Metric\TimingMetric;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 
 final class ClientTest extends TestCase
 {
+    use ProphecyTrait;
+
     private const METRIC_NAME = 'test_metric';
     private const SAMPLE_RATE = 0.8;
     private const TAGS = ['tag1' => 'value1', 'tag2' => 'value2'];
 
+    /** @var Client */
     private $client;
 
-    /** @var ObjectProphecy|Connection  */
+    /** @var ObjectProphecy<Connection> */
     private $connection;
 
     protected function setUp(): void
