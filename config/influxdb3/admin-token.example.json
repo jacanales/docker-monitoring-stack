@@ -1,0 +1,5 @@
+{
+  "token": "apiv3_replace_with_a_random_64_hex_character_string",
+  "name": "_admin",
+  "description": "Local development admin token for the docker-monitoring-stack"
+}

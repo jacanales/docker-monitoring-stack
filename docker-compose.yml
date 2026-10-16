@@ -1,4 +1,3 @@
-version: '3.5'
 services:
   traefik:
     image: traefik
@@ -15,7 +14,7 @@ services:
       #- "--providers.docker.exposedbydefault=false"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      #- $PWD/traefik/traefik.toml:/etc/traefik/traefik.toml
+      #- ./config/traefik/traefik.toml:/etc/traefik/traefik.toml
   whoami:
     image: "containous/whoami:v1.3.0"
     networks:
@@ -23,27 +22,81 @@ services:
     labels:
       - "traefik.http.routers.whoami.rule=Host(`whoami.docker.localhost`)"
   influxdb:
-    image: influxdb
+    image: influxdb:3.12.1-core
     environment:
-      - INFLUXDB_DB=telegraf
-      - INFLUXDB_USER=telegraf
-      - INFLUXDB_USER_PASSWORD=TelegrafPassword
+      INFLUXDB3_HOST_URL: http://127.0.0.1:8181
+      INFLUXDB3_AUTH_TOKEN: ${INFLUXDB3_AUTH_TOKEN:?run make token}
+    secrets:
+      - influxdb-admin-token
     volumes:
-      - influxdb:/var/lib/influxdb
+      - influxdb3:/var/lib/influxdb3
     ports:
-      - "8086:8086"
+      - "8181:8181"
+    healthcheck:
+      test: ["CMD", "/usr/bin/influxdb3", "show", "databases"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+    networks:
+      - backend
+    labels:
+      - "traefik.enable=false"
+      - "container_group=monitoring"
+    # InfluxDB 3 Core has no environment-driven database bootstrap: the database
+    # is created by the one-shot influxdb-init service below.
+    #
+    # The official image enables the Processing Engine through
+    # INFLUXDB3_PLUGIN_DIR=/plugins, which forces Python environment
+    # initialization. This stack ships no plugins and an empty value does not
+    # disable the engine, so it is unset explicitly and the flags are passed
+    # straight to `influxdb3 serve`.
+    entrypoint:
+      - /bin/bash
+      - -c
+      - unset INFLUXDB3_PLUGIN_DIR && exec influxdb3 serve "$$@"
+      - --
+    command:
+      - --node-id=influxdb
+      - --object-store=file
+      - --data-dir=/var/lib/influxdb3/data
+      - --admin-token-file=/run/secrets/influxdb-admin-token
+  influxdb-init:
+    image: influxdb:3.12.1-core
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    environment:
+      INFLUXDB3_HOST_URL: http://influxdb:8181
+      INFLUXDB3_AUTH_TOKEN: ${INFLUXDB3_AUTH_TOKEN:?run make token}
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        set -euo pipefail
+        if out="$$(influxdb3 create database telegraf 2>&1)"; then
+          echo "created database 'telegraf'"
+          exit 0
+        fi
+        printf '%s\n' "$$out" >&2
+        case "$$out" in
+          *already\ exists*) echo "database 'telegraf' already exists" ;;
+          *) exit 1 ;;
+        esac
     networks:
       - backend
     labels:
       - "traefik.enable=false"
       - "container_group=monitoring"
   telegraf:
-    image: telegraf
+    image: telegraf:1.40.2
+    environment:
+      INFLUXDB3_AUTH_TOKEN: ${INFLUXDB3_AUTH_TOKEN:?run make token}
     volumes:
-      - $PWD/config/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
-      - $PWD/config/telegraf/bin:/code/bin
-    links:
-      - influxdb
+      - ./config/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - ./config/telegraf/bin:/code/bin
+    depends_on:
+      influxdb:
+        condition: service_healthy
     networks:
       - backend
     ports:
@@ -80,4 +133,10 @@ networks:
 
 volumes:
   grafana:
-  influxdb:
+  # Fresh volume for the InfluxDB 3 Core engine. The InfluxDB 1.x volume
+  # ("influxdb") is left untouched; its data is not readable by InfluxDB 3.
+  influxdb3:
+
+secrets:
+  influxdb-admin-token:
+    file: ./config/influxdb3/admin-token.json
