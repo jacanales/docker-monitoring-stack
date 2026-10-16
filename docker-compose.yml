@@ -1,25 +1,26 @@
+name: docker-monitoring-stack
+
 services:
   traefik:
-    image: traefik
+    image: traefik:v3.7.15
     networks:
       - traefik
     ports:
       - "80:80"
       - "8080:8080"
-    command:
-      #- "--log.level=DEBUG"
-      - "--entrypoints.web.address=:80"
-      - "--api.insecure"
-      - "--providers.docker"
-      #- "--providers.docker.exposedbydefault=false"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      #- ./config/traefik/traefik.toml:/etc/traefik/traefik.toml
+      # Static configuration; the image reads this path by default, the flag
+      # only makes the wiring explicit.
+      - ./config/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+    command:
+      - --configFile=/etc/traefik/traefik.yml
   whoami:
-    image: "containous/whoami:v1.3.0"
+    image: "traefik/whoami:v1.12.0"
     networks:
       - traefik
     labels:
+      - "traefik.enable=true"
       - "traefik.http.routers.whoami.rule=Host(`whoami.docker.localhost`)"
   influxdb:
     image: influxdb:3.12.1-core
@@ -105,12 +106,15 @@ services:
       - "traefik.enable=false"
       - "container_group=monitoring"
   grafana:
-    image: grafana/grafana
+    image: grafana/grafana:13.2.4
     restart: always
     environment:
-      - GF_SERVER_ROOT_URL=https://grafana.localhost
+      - GF_SERVER_ROOT_URL=http://grafana.localhost
       - GF_SECURITY_ADMIN_PASSWORD=GrafanaPassword
-      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource,grafana-worldmap-panel,raintank-worldping-app,jdbranham-diagram-panel
+      # grafana-simple-json-datasource, grafana-worldmap-panel and
+      # raintank-worldping-app are deprecated upstream: the JSON data source is
+      # replaced by Infinity and the world map by Grafana's built-in Geomap.
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,jdbranham-diagram-panel,yesoreyeram-infinity-datasource
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_SECURITY_DISABLE_GRAVATAR=true
       - GF_SERVER_DOMAIN=localhost
@@ -122,10 +126,12 @@ services:
     ports:
       - 3000:3000
     labels:
-      - "traefik.backend=tick"
+      - "traefik.enable=true"
       - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"
-      - "traefik.docker.network=traefik"
-      - "traefik.port=3000"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+      # Grafana is attached to two networks, so Traefik has to be told which one
+      # to use. The prefix is the Compose project name pinned at the top.
+      - "traefik.docker.network=docker-monitoring-stack_traefik"
       - "container_group=monitoring"
 networks:
   backend:
@@ -136,7 +142,6 @@ volumes:
   # Fresh volume for the InfluxDB 3 Core engine. The InfluxDB 1.x volume
   # ("influxdb") is left untouched; its data is not readable by InfluxDB 3.
   influxdb3:
-
 secrets:
   influxdb-admin-token:
     file: ./config/influxdb3/admin-token.json

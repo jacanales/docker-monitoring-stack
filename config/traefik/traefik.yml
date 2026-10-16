@@ -1,0 +1,30 @@
+# Traefik v3 static configuration.
+#
+# Mounted read-only at /etc/traefik/traefik.yml by docker-compose.yml, which is
+# where the official image looks for its static configuration file.
+#
+# Routing rules live in container labels; this file only describes entrypoints,
+# the API and the Docker provider.
+
+entryPoints:
+  web:
+    address: ":80"
+  # Serves the API and the dashboard, exposed only for local development.
+  traefik:
+    address: ":8080"
+
+api:
+  # No authentication in front of the dashboard. Remove this before exposing
+  # port 8080 beyond localhost.
+  insecure: true
+
+providers:
+  docker:
+    # Only containers that ask for it get a router. With the default value
+    # (true) this Traefik, which owns port 80 on the host, would also publish
+    # containers belonging to unrelated Compose projects on the same Docker
+    # daemon.
+    exposedByDefault: false
+
+log:
+  level: INFO
